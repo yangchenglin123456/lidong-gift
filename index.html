@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立冬祝福</title>
+    <style>
+        /* 隐藏音乐进度条，不占空间 */
+        audio { display: none; }
+        /* 初始弹窗样式 */
+        .gift-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            z-index: 100;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+        }
+        .popup-title {
+            font-family: "微软雅黑", sans-serif;
+            font-size: 20px;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .popup-content {
+            font-family: "微软雅黑", sans-serif;
+            font-size: 16px;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: space-around;
+        }
+        .popup-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 45%;
+        }
+        .btn-yes {
+            background-color: #ff7eb3;
+            color: white;
+        }
+        .btn-no {
+            background-color: #e2e8f0;
+            color: #2d3748;
+        }
+        .popup-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        /* 祝福窗口样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            overflow: hidden;
+        }
+        .wish-window {
+            position: fixed;
+            width: 50px;
+            height: 25px;
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-sizing: border-box;
+            animation: popIn 0.3s ease-out;
+        }
+        .wish-window:hover {
+            transform: scale(1.05);
+        }
+        .wish-text {
+            font-family: "微软雅黑", sans-serif;
+            font-size: 5px;
+            font-weight: bold;
+            line-height: 1.4;
+            width: 100%;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        /* 隐藏祝福内容（初始状态） */
+        .wish-container {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 音频标签：已替换为你的文件名“几分之几.mp3” -->
+    <audio id="bgm" loop>
+        <source src="几分之几.mp3" type="audio/mpeg">
+        您的浏览器不支持音频播放，请升级浏览器
+    </audio>
+    <!-- 初始弹窗 -->
+    <div class="gift-popup" id="giftPopup">
+        <div class="popup-title">❄️ 立冬礼物</div>
+        <div class="popup-content">您有一份立冬礼物，确定要打开吗？</div>
+        <div class="btn-group">
+            <button class="popup-btn btn-yes" id="yesBtn">确定</button>
+            <button class="popup-btn btn-no" id="noBtn">取消</button>
+        </div>
+    </div>
+    <!-- 祝福内容容器 -->
+    <div class="wish-container" id="wishContainer">
+        <script>
+            // 立冬祝福列表
+            const wishes = [
+                '立冬安康', '岁寒添衣', '冬日有暖', '万事顺意',
+                '吃碗热饺', '暖心暖胃', '秋收冬藏', '福气满仓',
+                '霜雪初降', '暖意长存', '心中有光', '不惧冬凉',
+                '冬日漫漫', '好运相伴', '立冬快乐', '喜乐常安',
+                '暖炉温茶', '惬意过冬', '寒来暑往', '岁岁安康',
+                '愿你冬日', '向阳而生', '立冬吉祥', '寒来有暖',
+                '冬来安康', '岁月静好', '温暖常在', '幸福常伴',
+                '平安喜乐', '吉祥如意', '好运连连', '心想事成',
+                '事事顺心', '一帆风顺', '四季平安', '八方来财',
+                '五福临门', '六六大顺', '七星高照', '八方进宝',
+                '九九同心', '十全十美', '百福具臻', '千祥云集'
+            ];
+            // 温馨的背景颜色
+            const bgColors = [
+                '#FFD1DC', '#FFE4E1', '#FFEBCD', '#F5F5DC', 
+                '#E6E6FA', '#E0FFFF', '#F0FFF0', '#F0F8FF',
+                '#F8F8FF', '#FAF0E6', '#FAEBD7', '#FFFAF0'
+            ];
+            // 文字颜色
+            const textColors = ['#1976D2', '#689F38', '#F57C00', '#B71C1C', '#880E4F', '#006064', '#434343'];
+            // 获取屏幕尺寸
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            // 精确的心形分布算法
+            function getHeartPoints(numPoints) {
+                const centerX = screenWidth / 2;
+                const centerY = screenHeight / 2;
+                const scale = Math.min(screenWidth, screenHeight) / 35;
+                const points = [];
+                for (let i = 0; i < numPoints; i++) {
+                    const angle = i * (360 / numPoints);
+                    const rad = Math.PI * angle / 180;
+                    const x = centerX + scale * (16 * Math.pow(Math.sin(rad), 3));
+                    const y = centerY - scale * (13 * Math.cos(rad) - 5 * Math.cos(2*rad) - 2 * Math.cos(3*rad) - Math.cos(4*rad));
+                    // 确保点在屏幕内
+                    const finalX = Math.max(10, Math.min(screenWidth - 50, x - 25));
+                    const finalY = Math.max(10, Math.min(screenHeight - 25, y - 12));
+                    points.push({x: finalX, y: finalY});
+                }
+                return points;
+            }
+            // 创建祝福窗口
+            function createWishWindow(x, y, id) {
+                const div = document.createElement('div');
+                div.className = 'wish-window';
+                div.style.left = x + 'px';
+                div.style.top = y + 'px';
+                div.style.backgroundColor = randomElement(bgColors);
+                div.dataset.id = id;
+                const textDiv = document.createElement('div');
+                textDiv.className = 'wish-text';
+                textDiv.style.color = randomElement(textColors);
+                textDiv.textContent = randomElement(wishes);
+                div.appendChild(textDiv);
+                document.body.appendChild(div);
+                // 点击关闭窗口
+                div.addEventListener('click', () => {
+                    div.style.opacity = 0;
+                    setTimeout(() => div.remove(), 200);
+                });
+            }
+            // 计算不重叠的随机位置
+            function getNonOverlappingPosition(existingPositions, width, height) {
+                let newX, newY;
+                let isOverlapping;
+                do {
+                    isOverlapping = false;
+                    newX = Math.random() * (screenWidth - width);
+                    newY = Math.random() * (screenHeight - height);
+                    for (const pos of existingPositions) {
+                        if (Math.abs(newX - pos.x) < width && Math.abs(newY - pos.y) < height) {
+                            isOverlapping = true;
+                            break;
+                        }
+                    }
+                } while (isOverlapping);
+                return {x: newX, y: newY};
+            }
+            // 窗口慢慢移动到新位置
+            function moveWindowsToFullScreen() {
+                const windows = document.querySelectorAll('.wish-window');
+                const existingPositions = [];
+                windows.forEach(window => {
+                    const newPos = getNonOverlappingPosition(existingPositions, 50, 25);
+                    existingPositions.push(newPos);
+                    window.style.transition = 'all 1s ease-out';
+                    window.style.left = `${newPos.x}px`;
+                    window.style.top = `${newPos.y}px`;
+                });
+            }
+            // 获取随机元素
+            function randomElement(arr) {
+                return arr[Math.floor(Math.random() * arr.length)];
+            }
+            // 主函数（执行祝福效果）
+            function startWishEffect() {
+                const heartPoints = getHeartPoints(100); // 100个窗口
+                heartPoints.forEach((point, index) => {
+                    setTimeout(() => {
+                        createWishWindow(point.x, point.y, index);
+                        // 所有窗口创建完成后，执行移动效果
+                        if (index === heartPoints.length - 1) {
+                            setTimeout(moveWindowsToFullScreen, 1000);
+                        }
+                    }, index * 60); // 每60毫秒创建一个窗口
+                });
+            }
+            // 页面加载完成后，绑定按钮事件
+            window.onload = function() {
+                const giftPopup = document.getElementById('giftPopup');
+                const wishContainer = document.getElementById('wishContainer');
+                const yesBtn = document.getElementById('yesBtn');
+                const noBtn = document.getElementById('noBtn');
+                const bgm = document.getElementById('bgm');
+                // 点击"确定"：隐藏弹窗，启动祝福效果和音乐
+                yesBtn.addEventListener('click', () => {
+                    bgm.play().catch(() => {
+                        alert('请点击页面空白处触发音乐');
+                        document.body.addEventListener('click', () => bgm.play(), {once: true});
+                    });
+                    giftPopup.style.display = 'none';
+                    wishContainer.style.display = 'block';
+                    startWishEffect();
+                });
+                // 点击"取消"：直接关闭页面
+                noBtn.addEventListener('click', () => {
+                    window.close(); // 浏览器中关闭当前标签页
+                });
+            };
+        </script>
+    </div>
+</body>
+</html>
+
